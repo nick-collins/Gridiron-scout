@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "outputDirectory": "public",
+  "functions": {
+    "api/cfbd.js": { "runtime": "edge" },
+    "api/debug.js": { "runtime": "edge" }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
