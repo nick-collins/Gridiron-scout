@@ -1,6 +1,5 @@
 {
   "name": "gridiron-scout",
   "version": "1.0.0",
-  "description": "CFB Roster & Projection Tool",
   "engines": { "node": "20.x" }
 }
