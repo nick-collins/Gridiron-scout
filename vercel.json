@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/cfbd", "destination": "/api/cfbd" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
