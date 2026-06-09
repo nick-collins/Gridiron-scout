@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GridIronScout</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body,#root{height:100%}
+  body{background:#07101f;color:#f0f6ff;font-family:'Inter','Segoe UI',system-ui,sans-serif}
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:#07101f}
+  ::-webkit-scrollbar-thumb{background:#1c2e44;border-radius:3px}
+  input,select,button{font-family:inherit}
+  input::placeholder{color:#3d566e}
+  select option{background:#0e1829}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .fade{animation:fadeIn .25s ease}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const C={
+  bg:"#07101f",surface:"#0e1829",card:"#142030",cardHov:"#1a2840",
+  border:"#1c2e44",accent:"#f59e0b",accentA:"#f59e0b33",
+  green:"#22c55e",red:"#ef4444",blue:"#3b82f6",
+  text:"#f0f6ff",muted:"#8da4be",dim:"#3d566e",
+};
+
+// ── ALL 132 FBS TEAMS ─────────────────────────────────────────────────────────
+const TEAMS=[
+  {id:1,school:"Air Force",conf:"Mountain West",city:"Colorado Springs",state:"CO",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png"},
+  {id:2,school:"Akron",conf:"MAC",city:"Akron",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png"},
+  {id:3,school:"Alabama",conf:"SEC",city:"Tuscaloosa",state:"AL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/333.png"},
+  {id:4,school:"Appalachian State",conf:"Sun Belt",city:"Boone",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png"},
+  {id:5,school:"Arizona",conf:"Big 12",city:"Tucson",state:"AZ",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/12.png"},
+  {id:6,school:"Arizona State",conf:"Big 12",city:"Tempe",state:"AZ",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/9.png"},
+  {id:7,school:"Arkansas",conf:"SEC",city:"Fayetteville",state:"AR",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/8.png"},
+  {id:8,school:"Arkansas State",conf:"Sun Belt",city:"Jonesboro",state:"AR",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png"},
+  {id:9,school:"Army",conf:"American",city:"West Point",state:"NY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/349.png"},
+  {id:10,school:"Auburn",conf:"SEC",city:"Auburn",state:"AL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2.png"},
+  {id:11,school:"Ball State",conf:"MAC",city:"Muncie",state:"IN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2050.png"},
+  {id:12,school:"Baylor",conf:"Big 12",city:"Waco",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/239.png"},
+  {id:13,school:"Boise State",conf:"Mountain West",city:"Boise",state:"ID",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/68.png"},
+  {id:14,school:"Boston College",conf:"ACC",city:"Chestnut Hill",state:"MA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/103.png"},
+  {id:15,school:"Bowling Green",conf:"MAC",city:"Bowling Green",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/189.png"},
+  {id:16,school:"Buffalo",conf:"MAC",city:"Buffalo",state:"NY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2084.png"},
+  {id:17,school:"BYU",conf:"Big 12",city:"Provo",state:"UT",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/252.png"},
+  {id:18,school:"California",conf:"ACC",city:"Berkeley",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/25.png"},
+  {id:19,school:"Central Michigan",conf:"MAC",city:"Mount Pleasant",state:"MI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2117.png"},
+  {id:20,school:"Charlotte",conf:"American",city:"Charlotte",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2429.png"},
+  {id:21,school:"Cincinnati",conf:"Big 12",city:"Cincinnati",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2132.png"},
+  {id:22,school:"Clemson",conf:"ACC",city:"Clemson",state:"SC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/228.png"},
+  {id:23,school:"Coastal Carolina",conf:"Sun Belt",city:"Conway",state:"SC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/324.png"},
+  {id:24,school:"Colorado",conf:"Big 12",city:"Boulder",state:"CO",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/38.png"},
+  {id:25,school:"Colorado State",conf:"Mountain West",city:"Fort Collins",state:"CO",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/36.png"},
+  {id:26,school:"Connecticut",conf:"American",city:"Storrs",state:"CT",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/41.png"},
+  {id:27,school:"Duke",conf:"ACC",city:"Durham",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/150.png"},
+  {id:28,school:"East Carolina",conf:"American",city:"Greenville",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/151.png"},
+  {id:29,school:"Eastern Michigan",conf:"MAC",city:"Ypsilanti",state:"MI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2199.png"},
+  {id:30,school:"Florida",conf:"SEC",city:"Gainesville",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/57.png"},
+  {id:31,school:"Florida Atlantic",conf:"American",city:"Boca Raton",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2226.png"},
+  {id:32,school:"Florida International",conf:"American",city:"Miami",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2229.png"},
+  {id:33,school:"Florida State",conf:"ACC",city:"Tallahassee",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/52.png"},
+  {id:34,school:"Fresno State",conf:"Mountain West",city:"Fresno",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/278.png"},
+  {id:35,school:"Georgia",conf:"SEC",city:"Athens",state:"GA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/61.png"},
+  {id:36,school:"Georgia Southern",conf:"Sun Belt",city:"Statesboro",state:"GA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/290.png"},
+  {id:37,school:"Georgia State",conf:"Sun Belt",city:"Atlanta",state:"GA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png"},
+  {id:38,school:"Georgia Tech",conf:"ACC",city:"Atlanta",state:"GA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/59.png"},
+  {id:39,school:"Hawaii",conf:"Mountain West",city:"Honolulu",state:"HI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/62.png"},
+  {id:40,school:"Houston",conf:"Big 12",city:"Houston",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/248.png"},
+  {id:41,school:"Illinois",conf:"Big Ten",city:"Champaign",state:"IL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/356.png"},
+  {id:42,school:"Indiana",conf:"Big Ten",city:"Bloomington",state:"IN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/84.png"},
+  {id:43,school:"Iowa",conf:"Big Ten",city:"Iowa City",state:"IA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png"},
+  {id:44,school:"Iowa State",conf:"Big 12",city:"Ames",state:"IA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/66.png"},
+  {id:45,school:"Jacksonville State",conf:"American",city:"Jacksonville",state:"AL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/55.png"},
+  {id:46,school:"James Madison",conf:"Sun Belt",city:"Harrisonburg",state:"VA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/256.png"},
+  {id:47,school:"Kansas",conf:"Big 12",city:"Lawrence",state:"KS",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png"},
+  {id:48,school:"Kansas State",conf:"Big 12",city:"Manhattan",state:"KS",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2306.png"},
+  {id:49,school:"Kent State",conf:"MAC",city:"Kent",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2307.png"},
+  {id:50,school:"Kentucky",conf:"SEC",city:"Lexington",state:"KY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/96.png"},
+  {id:51,school:"Liberty",conf:"Conference USA",city:"Lynchburg",state:"VA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2335.png"},
+  {id:52,school:"Louisiana",conf:"Sun Belt",city:"Lafayette",state:"LA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/309.png"},
+  {id:53,school:"Louisiana Monroe",conf:"Sun Belt",city:"Monroe",state:"LA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2433.png"},
+  {id:54,school:"Louisiana Tech",conf:"American",city:"Ruston",state:"LA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2348.png"},
+  {id:55,school:"Louisville",conf:"ACC",city:"Louisville",state:"KY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/97.png"},
+  {id:56,school:"LSU",conf:"SEC",city:"Baton Rouge",state:"LA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/99.png"},
+  {id:57,school:"Marshall",conf:"Sun Belt",city:"Huntington",state:"WV",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/276.png"},
+  {id:58,school:"Maryland",conf:"Big Ten",city:"College Park",state:"MD",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/120.png"},
+  {id:59,school:"Memphis",conf:"American",city:"Memphis",state:"TN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/235.png"},
+  {id:60,school:"Miami",conf:"ACC",city:"Coral Gables",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png"},
+  {id:61,school:"Miami (OH)",conf:"MAC",city:"Oxford",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/193.png"},
+  {id:62,school:"Michigan",conf:"Big Ten",city:"Ann Arbor",state:"MI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/130.png"},
+  {id:63,school:"Michigan State",conf:"Big Ten",city:"East Lansing",state:"MI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/127.png"},
+  {id:64,school:"Middle Tennessee",conf:"Conference USA",city:"Murfreesboro",state:"TN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2393.png"},
+  {id:65,school:"Minnesota",conf:"Big Ten",city:"Minneapolis",state:"MN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/135.png"},
+  {id:66,school:"Mississippi State",conf:"SEC",city:"Starkville",state:"MS",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/344.png"},
+  {id:67,school:"Missouri",conf:"SEC",city:"Columbia",state:"MO",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/142.png"},
+  {id:68,school:"Navy",conf:"American",city:"Annapolis",state:"MD",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2426.png"},
+  {id:69,school:"Nebraska",conf:"Big Ten",city:"Lincoln",state:"NE",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/158.png"},
+  {id:70,school:"Nevada",conf:"Mountain West",city:"Reno",state:"NV",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2440.png"},
+  {id:71,school:"New Mexico",conf:"Mountain West",city:"Albuquerque",state:"NM",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/167.png"},
+  {id:72,school:"New Mexico State",conf:"Conference USA",city:"Las Cruces",state:"NM",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/166.png"},
+  {id:73,school:"North Carolina",conf:"ACC",city:"Chapel Hill",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/153.png"},
+  {id:74,school:"NC State",conf:"ACC",city:"Raleigh",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/152.png"},
+  {id:75,school:"North Texas",conf:"American",city:"Denton",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/249.png"},
+  {id:76,school:"Northern Illinois",conf:"MAC",city:"DeKalb",state:"IL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2459.png"},
+  {id:77,school:"Northwestern",conf:"Big Ten",city:"Evanston",state:"IL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/77.png"},
+  {id:78,school:"Notre Dame",conf:"Independent",city:"Notre Dame",state:"IN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/87.png"},
+  {id:79,school:"Ohio",conf:"MAC",city:"Athens",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2463.png"},
+  {id:80,school:"Ohio State",conf:"Big Ten",city:"Columbus",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/194.png"},
+  {id:81,school:"Oklahoma",conf:"SEC",city:"Norman",state:"OK",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/201.png"},
+  {id:82,school:"Oklahoma State",conf:"Big 12",city:"Stillwater",state:"OK",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/197.png"},
+  {id:83,school:"Old Dominion",conf:"Sun Belt",city:"Norfolk",state:"VA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2466.png"},
+  {id:84,school:"Ole Miss",conf:"SEC",city:"Oxford",state:"MS",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/145.png"},
+  {id:85,school:"Oregon",conf:"Big Ten",city:"Eugene",state:"OR",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png"},
+  {id:86,school:"Oregon State",conf:"Pac-12",city:"Corvallis",state:"OR",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/204.png"},
+  {id:87,school:"Penn State",conf:"Big Ten",city:"University Park",state:"PA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/213.png"},
+  {id:88,school:"Pittsburgh",conf:"ACC",city:"Pittsburgh",state:"PA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/221.png"},
+  {id:89,school:"Purdue",conf:"Big Ten",city:"West Lafayette",state:"IN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2509.png"},
+  {id:90,school:"Rice",conf:"American",city:"Houston",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/242.png"},
+  {id:91,school:"Rutgers",conf:"Big Ten",city:"Piscataway",state:"NJ",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/164.png"},
+  {id:92,school:"Sam Houston",conf:"Conference USA",city:"Huntsville",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2534.png"},
+  {id:93,school:"San Diego State",conf:"Mountain West",city:"San Diego",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/21.png"},
+  {id:94,school:"San Jose State",conf:"Mountain West",city:"San Jose",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/23.png"},
+  {id:95,school:"SMU",conf:"ACC",city:"Dallas",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2567.png"},
+  {id:96,school:"South Alabama",conf:"Sun Belt",city:"Mobile",state:"AL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/6.png"},
+  {id:97,school:"South Carolina",conf:"SEC",city:"Columbia",state:"SC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2579.png"},
+  {id:98,school:"South Florida",conf:"American",city:"Tampa",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/58.png"},
+  {id:99,school:"Southern Miss",conf:"Sun Belt",city:"Hattiesburg",state:"MS",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png"},
+  {id:100,school:"Stanford",conf:"ACC",city:"Stanford",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/24.png"},
+  {id:101,school:"Syracuse",conf:"ACC",city:"Syracuse",state:"NY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/183.png"},
+  {id:102,school:"TCU",conf:"Big 12",city:"Fort Worth",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2628.png"},
+  {id:103,school:"Temple",conf:"American",city:"Philadelphia",state:"PA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/218.png"},
+  {id:104,school:"Tennessee",conf:"SEC",city:"Knoxville",state:"TN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png"},
+  {id:105,school:"Texas",conf:"SEC",city:"Austin",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2641.png"},
+  {id:106,school:"Texas A&M",conf:"SEC",city:"College Station",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/245.png"},
+  {id:107,school:"Texas State",conf:"Sun Belt",city:"San Marcos",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/326.png"},
+  {id:108,school:"Texas Tech",conf:"Big 12",city:"Lubbock",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2640.png"},
+  {id:109,school:"Toledo",conf:"MAC",city:"Toledo",state:"OH",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2649.png"},
+  {id:110,school:"Troy",conf:"Sun Belt",city:"Troy",state:"AL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2653.png"},
+  {id:111,school:"Tulane",conf:"American",city:"New Orleans",state:"LA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2655.png"},
+  {id:112,school:"Tulsa",conf:"American",city:"Tulsa",state:"OK",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/202.png"},
+  {id:113,school:"UAB",conf:"American",city:"Birmingham",state:"AL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2819.png"},
+  {id:114,school:"UCF",conf:"Big 12",city:"Orlando",state:"FL",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2116.png"},
+  {id:115,school:"UCLA",conf:"Big Ten",city:"Los Angeles",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/26.png"},
+  {id:116,school:"UNLV",conf:"Mountain West",city:"Las Vegas",state:"NV",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png"},
+  {id:117,school:"USC",conf:"Big Ten",city:"Los Angeles",state:"CA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/30.png"},
+  {id:118,school:"Utah",conf:"Big 12",city:"Salt Lake City",state:"UT",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/254.png"},
+  {id:119,school:"Utah State",conf:"Mountain West",city:"Logan",state:"UT",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/328.png"},
+  {id:120,school:"UTEP",conf:"Conference USA",city:"El Paso",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2638.png"},
+  {id:121,school:"UTSA",conf:"American",city:"San Antonio",state:"TX",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2636.png"},
+  {id:122,school:"Vanderbilt",conf:"SEC",city:"Nashville",state:"TN",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/238.png"},
+  {id:123,school:"Virginia",conf:"ACC",city:"Charlottesville",state:"VA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/258.png"},
+  {id:124,school:"Virginia Tech",conf:"ACC",city:"Blacksburg",state:"VA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/259.png"},
+  {id:125,school:"Wake Forest",conf:"ACC",city:"Winston-Salem",state:"NC",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/154.png"},
+  {id:126,school:"Washington",conf:"Big Ten",city:"Seattle",state:"WA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/264.png"},
+  {id:127,school:"Washington State",conf:"Pac-12",city:"Pullman",state:"WA",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/265.png"},
+  {id:128,school:"West Virginia",conf:"Big 12",city:"Morgantown",state:"WV",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/277.png"},
+  {id:129,school:"Western Kentucky",conf:"Conference USA",city:"Bowling Green",state:"KY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/98.png"},
+  {id:130,school:"Western Michigan",conf:"MAC",city:"Kalamazoo",state:"MI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2711.png"},
+  {id:131,school:"Wisconsin",conf:"Big Ten",city:"Madison",state:"WI",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/275.png"},
+  {id:132,school:"Wyoming",conf:"Mountain West",city:"Laramie",state:"WY",logo:"https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png"},
+].sort((a,b)=>a.school.localeCompare(b.school));
+
+const POS_GROUPS={
+  Offense:["QB","RB","FB","WR","TE","OL","OT","OG","C"],
+  Defense:["DL","DE","DT","NT","LB","ILB","OLB","DB","CB","S","FS","SS"],
+  "Special Teams":["K","P","LS","KR","PR"],
+};
+const YEAR=new Date().getFullYear();
+const DATA_YEAR=2025; // CFBD roster/recruiting data lags — update each fall
+
+// ── API — calls our own /api/cfbd proxy, key never leaves the server ──────────
+async function api(path,params={}){
+  const url=new URL("/api/cfbd",window.location.href);
+  url.searchParams.set("path",path);
+  Object.entries(params).forEach(([k,v])=>{if(v!=null&&v!=="")url.searchParams.set(k,String(v));});
+  try{
+    const r=await fetch(url.toString());
+    if(!r.ok) return null;
+    return await r.json();
+  }catch{return null;}
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pScore=p=>Math.round((p.stars||0)*15+clamp((p.year||1)-1,0,3)*8+(p.rating?p.rating*20:0));
+const f1=n=>isNaN(n)?"—":(Math.round(n*10)/10).toFixed(1);
+const winP=(a,b)=>1/(1+Math.exp(-((a||0)-(b||0))/7));
+
+// ── UI PRIMITIVES ─────────────────────────────────────────────────────────────
+function Spin(){return <div style={{width:18,height:18,border:`3px solid ${C.border}`,borderTop:`3px solid ${C.accent}`,borderRadius:"50%",animation:"spin .7s linear infinite",flexShrink:0}}/>;}
+function Loader({label="Loading…"}){return <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:56,gap:10}}><Spin/><span style={{color:C.muted,fontSize:14}}>{label}</span></div>;}
+function Logo({t,size=30}){
+  const[e,sE]=useState(false);
+  if(!t?.logo||e)return <div style={{width:size,height:size,background:C.border,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.4,flexShrink:0}}>🏈</div>;
+  return <img src={t.logo} alt={t.school} onError={()=>sE(true)} style={{width:size,height:size,objectFit:"contain",flexShrink:0}}/>;
+}
+function Pill({label,on,click}){return <button onClick={click} style={{background:on?C.accent:C.card,color:on?"#000":C.muted,border:`1px solid ${on?C.accent:C.border}`,borderRadius:7,padding:"5px 13px",cursor:"pointer",fontWeight:600,fontSize:12}}>{label}</button>;}
+function Badge({label,val,color}){return <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"11px 16px",textAlign:"center",minWidth:76}}><div style={{color:color||C.accent,fontWeight:900,fontSize:22,fontFamily:"monospace",lineHeight:1}}>{val}</div><div style={{color:C.muted,fontSize:10,marginTop:4,textTransform:"uppercase",letterSpacing:1}}>{label}</div></div>;}
+function Tabs({tabs,active,set}){return <div style={{display:"flex",borderBottom:`1px solid ${C.border}`,marginBottom:22}}>{tabs.map(t=><button key={t.id} onClick={()=>set(t.id)} style={{background:"none",border:"none",padding:"10px 16px",cursor:"pointer",fontWeight:700,fontSize:13,color:active===t.id?C.accent:C.muted,borderBottom:active===t.id?`2px solid ${C.accent}`:"2px solid transparent",marginBottom:-1,display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}><span>{t.icon}</span><span>{t.label}</span></button>)}</div>;}
+function TSearch({val,set,exclude=""}){
+  const[q,sQ]=useState("");const[open,sO]=useState(false);const ref=useRef();
+  const list=TEAMS.filter(t=>t.school.toLowerCase().includes(q.toLowerCase())&&t.school!==exclude).slice(0,18);
+  useEffect(()=>{const fn=e=>{if(ref.current&&!ref.current.contains(e.target))sO(false)};document.addEventListener("mousedown",fn);return()=>document.removeEventListener("mousedown",fn);},[]);
+  return <div ref={ref} style={{position:"relative"}}>
+    <div onClick={()=>sO(o=>!o)} style={{display:"flex",alignItems:"center",gap:8,background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"9px 13px",cursor:"pointer",minWidth:190}}>
+      {val?<><Logo t={val} size={22}/><span style={{color:C.text,fontWeight:600,fontSize:13}}>{val.school}</span></>:<span style={{color:C.dim,fontSize:13}}>Select team…</span>}
+      <span style={{marginLeft:"auto",color:C.dim}}>▾</span>
+    </div>
+    {open&&<div style={{position:"absolute",top:"108%",left:0,right:0,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,zIndex:99,maxHeight:260,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+      <div style={{padding:7}}><input autoFocus value={q} onChange={e=>sQ(e.target.value)} placeholder="Filter…" style={{width:"100%",background:C.bg,border:`1px solid ${C.border}`,borderRadius:7,padding:"6px 10px",color:C.text,fontSize:13,outline:"none"}}/></div>
+      <div style={{overflowY:"auto"}}>{list.map(t=><div key={t.id} onClick={()=>{set(t);sO(false);sQ("");}} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 13px",cursor:"pointer",borderBottom:`1px solid ${C.border}18`}} onMouseEnter={e=>e.currentTarget.style.background=C.cardHov} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><Logo t={t} size={20}/><div><div style={{color:C.text,fontSize:13,fontWeight:600}}>{t.school}</div><div style={{color:C.dim,fontSize:10}}>{t.conf}</div></div></div>)}</div>
+    </div>}
+  </div>;
+}
+
+// ── DEPTH CHART ───────────────────────────────────────────────────────────────
+function DepthChart({roster,commits}){
+  const[grp,sG]=useState("Offense");
+  const all=[...(roster||[]).map(p=>({...p,_c:false})),...(commits||[]).map(p=>({...p,_c:true,year:1}))];
+  const pos=POS_GROUPS[grp]||[];
+  const byPos={};
+  all.forEach(p=>{const k=p.position?.toUpperCase();if(pos.includes(k))(byPos[k]=byPos[k]||[]).push(p);});
+  Object.keys(byPos).forEach(k=>byPos[k].sort((a,b)=>pScore(b)-pScore(a)));
+  const filled=pos.filter(k=>byPos[k]?.length>0);
+  return <div>
+    <div style={{display:"flex",gap:7,marginBottom:18,flexWrap:"wrap"}}>{Object.keys(POS_GROUPS).map(g=><Pill key={g} label={g} on={grp===g} click={()=>sG(g)}/>)}</div>
+    {filled.length===0?<div style={{color:C.muted,textAlign:"center",padding:48,fontSize:14}}>No data for this position group.</div>:
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
+      {filled.map(pos=><div key={pos} style={{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden"}}>
+        <div style={{background:C.border,padding:"6px 13px",fontWeight:900,fontSize:11,color:C.accent,letterSpacing:2}}>{pos}</div>
+        {byPos[pos].slice(0,4).map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:9,padding:"10px 13px",borderBottom:i<3?`1px solid ${C.border}`:"none",opacity:i===0?1:.72}}>
+          <div style={{width:22,height:22,borderRadius:"50%",background:i===0?C.accent:C.border,color:i===0?"#000":C.muted,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:10,flexShrink:0}}>{i+1}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{color:C.text,fontWeight:600,fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+              {p.first_name||""} {p.last_name||p.name||""}
+              {p._c&&<span style={{marginLeft:5,fontSize:9,background:"#22c55e22",color:C.green,borderRadius:4,padding:"1px 4px",fontWeight:700}}>COMMIT</span>}
+            </div>
+            <div style={{color:C.muted,fontSize:11}}>{["Fr","So","Jr","Sr","Gr"][clamp((p.year||1)-1,0,4)]}{p.stars?` · ${"★".repeat(p.stars)}`:""}</div>
+          </div>
+          <div style={{color:C.accent,fontWeight:800,fontSize:11,fontFamily:"monospace"}}>{pScore(p)}</div>
+        </div>)}
+      </div>)}
+    </div>}
+  </div>;
+}
+
+// ── SCHEDULE ──────────────────────────────────────────────────────────────────
+function Schedule({games,team,ratings}){
+  const rec=(()=>{
+    if(!games?.length||!ratings)return null;
+    let w=0,l=0;
+    games.forEach(g=>{const h=g.home_team===team,opp=h?g.away_team:g.home_team;const p=h?winP(ratings[team]||0,ratings[opp]||0):1-winP(ratings[opp]||0,ratings[team]||0);w+=p;l+=1-p;});
+    return{w:f1(w),l:f1(l),n:games.length};
+  })();
+  if(!games?.length)return <div style={{color:C.muted,textAlign:"center",padding:48,fontSize:14}}>No schedule data loaded.</div>;
+  return <div>
+    {rec&&<div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}><Badge label="Proj Wins" val={rec.w} color={C.green}/><Badge label="Proj Losses" val={rec.l} color={C.red}/><Badge label="Games" val={rec.n} color={C.blue}/></div>}
+    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+      {games.map((g,i)=>{
+        const h=g.home_team===team,opp=h?g.away_team:g.home_team;
+        const p=h?winP(ratings?.[team]||0,ratings?.[opp]||0):1-winP(ratings?.[opp]||0,ratings?.[team]||0);
+        const pct=Math.round(p*100),done=g.home_points!=null;
+        const won=done&&(h?g.home_points>g.away_points:g.away_points>g.home_points);
+        return <div key={i} style={{display:"flex",alignItems:"center",gap:13,background:C.card,borderRadius:10,padding:"11px 16px",border:`1px solid ${C.border}`}}>
+          <div style={{width:36,color:C.dim,fontSize:11,textAlign:"center",flexShrink:0}}>{g.week?`Wk ${g.week}`:`#${i+1}`}</div>
+          <div style={{flex:1}}><span style={{color:C.muted,fontSize:11,marginRight:5}}>{h?"vs":"@"}</span><span style={{color:C.text,fontWeight:700,fontSize:14}}>{opp}</span></div>
+          {done?<span style={{color:won?C.green:C.red,fontWeight:800,fontSize:13}}>{won?"W":"L"} {h?`${g.home_points}-${g.away_points}`:`${g.away_points}-${g.home_points}`}</span>
+          :<div style={{display:"flex",alignItems:"center",gap:7}}><div style={{width:76,height:6,background:C.border,borderRadius:3,overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",background:pct>60?C.green:pct<40?C.red:C.accent,borderRadius:3}}/></div><span style={{color:C.muted,fontSize:12,width:34,textAlign:"right"}}>{pct}%</span></div>}
+        </div>;
+      })}
+    </div>
+  </div>;
+}
+
+// ── RECRUITING ────────────────────────────────────────────────────────────────
+function Recruiting({commits}){
+  const s=[...(commits||[])].sort((a,b)=>(b.stars||0)-(a.stars||0));
+  const avg=s.length?(s.reduce((x,r)=>x+(r.stars||0),0)/s.length).toFixed(1):"—";
+  return <div>
+    <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}><Badge label="Commits" val={s.length}/><Badge label="Avg ★" val={avg}/><Badge label="5★" val={s.filter(r=>r.stars===5).length} color="#f59e0b"/><Badge label="4★" val={s.filter(r=>r.stars===4).length} color={C.blue}/></div>
+    {s.length===0?<div style={{color:C.muted,textAlign:"center",padding:48,fontSize:14}}>No commit data loaded.</div>:
+    <div style={{display:"flex",flexDirection:"column",gap:6}}>{s.map((r,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:13,background:C.card,borderRadius:10,padding:"10px 16px",border:`1px solid ${C.border}`}}>
+      <span style={{fontSize:18,flexShrink:0}}>{r.stars===5?"🌟":r.stars===4?"⭐":"✦"}</span>
+      <div style={{flex:1}}><div style={{color:C.text,fontWeight:700,fontSize:14}}>{r.name}</div><div style={{color:C.muted,fontSize:12}}>{r.position} · {r.city||r.hometown||"—"}{r.stateProvince?`, ${r.stateProvince}`:""}</div></div>
+      <div style={{textAlign:"right"}}><div style={{color:C.accent,fontWeight:700,fontSize:13}}>{"★".repeat(r.stars||0)}</div>{r.rating&&<div style={{color:C.dim,fontSize:11}}>{r.rating.toFixed(4)}</div>}</div>
+    </div>)}</div>}
+  </div>;
+}
+
+// ── PORTAL ────────────────────────────────────────────────────────────────────
+function Portal(){
+  const[data,sD]=useState(null);const[load,sL]=useState(false);
+  const[yr,sY]=useState(String(DATA_YEAR));const[pos,sP]=useState("All");const[q,sQ]=useState("");
+  useEffect(()=>{sL(true);sD(null);api("/player/portal",{year:yr}).then(d=>{sD(d||[]);sL(false);});},[yr]);
+  const positions=["All",...Array.from(new Set((data||[]).map(p=>p.position).filter(Boolean))).sort()];
+  const filtered=(data||[]).filter(p=>{const mp=pos==="All"||p.position===pos;const mq=!q||[p.firstName,p.lastName,p.origin,p.destination].some(s=>s?.toLowerCase().includes(q.toLowerCase()));return mp&&mq;});
+  const bOut={},bIn={};(data||[]).forEach(p=>{if(p.origin)bOut[p.origin]=(bOut[p.origin]||0)+1;if(p.destination)bIn[p.destination]=(bIn[p.destination]||0)+1;});
+  const tOut=Object.entries(bOut).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const tIn=Object.entries(bIn).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  return <div>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
+      <h3 style={{margin:0,color:C.text,fontWeight:900,fontSize:20}}>🔄 Transfer Portal</h3>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+        <select value={yr} onChange={e=>sY(e.target.value)} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"6px 11px",color:C.text,fontSize:13,outline:"none"}}>{[DATA_YEAR,DATA_YEAR-1,DATA_YEAR-2].map(y=><option key={y} value={y}>{y}</option>)}</select>
+        <input value={q} onChange={e=>sQ(e.target.value)} placeholder="Search player or team…" style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"6px 11px",color:C.text,fontSize:13,outline:"none",width:190}}/>
+      </div>
+    </div>
+    {!load&&data&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+      {[["📤 Top Losing",tOut,C.red],["📥 Top Gaining",tIn,C.green]].map(([title,rows,color])=><div key={title} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:14}}>
+        <div style={{color,fontWeight:800,fontSize:11,letterSpacing:1,marginBottom:8}}>{title}</div>
+        {rows.map(([team,n])=><div key={team} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:`1px solid ${C.border}22`}}><span style={{color:C.text,fontSize:13}}>{team}</span><span style={{color,fontWeight:700,fontFamily:"monospace"}}>{n}</span></div>)}
+      </div>)}
+    </div>}
+    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>{positions.slice(0,14).map(p=><Pill key={p} label={p} on={pos===p} click={()=>sP(p)}/>)}</div>
+    {load?<Loader label="Loading transfer portal…"/>:<>
+      <div style={{color:C.muted,fontSize:13,marginBottom:10}}>{filtered.length.toLocaleString()} transfers</div>
+      <div style={{display:"flex",flexDirection:"column",gap:5}}>
+        {filtered.slice(0,200).map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:11,background:C.card,borderRadius:10,padding:"10px 15px",border:`1px solid ${C.border}`}}>
+          <div style={{width:34,textAlign:"center",flexShrink:0}}><div style={{color:C.accent,fontSize:10}}>{"★".repeat(p.stars||0)}</div><div style={{color:C.dim,fontSize:10,fontWeight:700}}>{p.position||"?"}</div></div>
+          <div style={{flex:1,minWidth:0}}><div style={{color:C.text,fontWeight:700,fontSize:14}}>{p.firstName} {p.lastName}</div>
+            <div style={{display:"flex",alignItems:"center",gap:5,fontSize:12,marginTop:1}}><span style={{color:C.red}}>{p.origin||"?"}</span><span style={{color:C.dim}}>→</span><span style={{color:p.destination?C.green:C.dim}}>{p.destination||"Undecided"}</span></div>
+          </div>
+          <div style={{textAlign:"right",flexShrink:0}}>{p.transferDate&&<div style={{color:C.dim,fontSize:11}}>{p.transferDate.slice(0,10)}</div>}{p.rating&&<div style={{color:C.accent,fontWeight:700,fontSize:12,fontFamily:"monospace"}}>{p.rating.toFixed(4)}</div>}</div>
+        </div>)}
+      </div>
+    </>}
+  </div>;
+}
+
+// ── MATCHUP ───────────────────────────────────────────────────────────────────
+function Matchup(){
+  const[tA,sTA]=useState(null);const[tB,sTB]=useState(null);
+  const[yA,sYA]=useState(String(DATA_YEAR));const[yB,sYB]=useState(String(DATA_YEAR));
+  const[neutral,sN]=useState(false);
+  const[res,sR]=useState(null);const[load,sL]=useState(false);
+  const[hist,sH]=useState(null);const[hLoad,sHL]=useState(false);
+  const YRS=Array.from({length:6},(_,i)=>DATA_YEAR-i);
+  async function run(){
+    if(!tA||!tB)return;
+    sL(true);sR(null);sH(null);
+    const[sp,rA,rB]=await Promise.all([api("/ratings/sp",{year:Math.max(Number(yA),Number(yB))}),api("/roster",{team:tA.school,year:yA}),api("/roster",{team:tB.school,year:yB})]);
+    const m={};(sp||[]).forEach(t=>{m[t.team]={off:t.offense?.rating||0,def:t.defense?.rating||0,sp:(t.offense?.rating||0)+(t.defense?.rating||0)};});
+    const spA=m[tA.school]||{off:0,def:0,sp:0},spB=m[tB.school]||{off:0,def:0,sp:0};
+    const diff=(spA.sp+(neutral?0:2.5))-spB.sp,pA=1/(1+Math.exp(-diff/7));
+    sR({spA,spB,pA,sA:Math.max(7,Math.round(14+spA.off*.4-spB.def*.3)),sB:Math.max(7,Math.round(14+spB.off*.4-spA.def*.3)),rA:rA||[],rB:rB||[]});
+    sL(false);sHL(true);
+    const g=await api("/games",{team:tA.school,opponent:tB.school});
+    sH((g||[]).sort((a,b)=>b.season-a.season).slice(0,10));sHL(false);
+  }
+  const SR=({lbl,a,b,hb=true})=>{
+    const an=parseFloat(a),bn=parseFloat(b);
+    const aW=!isNaN(an)&&!isNaN(bn)&&(hb?an>bn:an<bn),bW=!isNaN(an)&&!isNaN(bn)&&(hb?bn>an:bn<an);
+    return <div style={{display:"flex",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}18`}}>
+      <div style={{flex:1,textAlign:"right",fontWeight:aW?800:400,color:aW?C.green:C.text,fontSize:13}}>{a??"-"}</div>
+      <div style={{width:170,textAlign:"center",color:C.muted,fontSize:11,textTransform:"uppercase",letterSpacing:.7,padding:"0 10px"}}>{lbl}</div>
+      <div style={{flex:1,textAlign:"left",fontWeight:bW?800:400,color:bW?C.green:C.text,fontSize:13}}>{b??"-"}</div>
+    </div>;
+  };
+  return <div>
+    <h3 style={{margin:"0 0 18px",color:C.text,fontWeight:900,fontSize:20}}>⚔️ Matchup Simulator</h3>
+    <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:14,alignItems:"center",marginBottom:18}}>
+      <div style={{display:"flex",flexDirection:"column",gap:7}}>
+        <TSearch val={tA} set={sTA} exclude={tB?.school}/>
+        <select value={yA} onChange={e=>sYA(e.target.value)} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"7px 11px",color:C.text,fontSize:13,outline:"none"}}>{YRS.map(y=><option key={y} value={y}>{y} Season</option>)}</select>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+        <div style={{color:C.accent,fontWeight:900,fontSize:22}}>VS</div>
+        <label style={{display:"flex",alignItems:"center",gap:5,color:C.muted,fontSize:12,cursor:"pointer"}}><input type="checkbox" checked={neutral} onChange={e=>sN(e.target.checked)}/> Neutral</label>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:7}}>
+        <TSearch val={tB} set={sTB} exclude={tA?.school}/>
+        <select value={yB} onChange={e=>sYB(e.target.value)} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"7px 11px",color:C.text,fontSize:13,outline:"none"}}>{YRS.map(y=><option key={y} value={y}>{y} Season</option>)}</select>
+      </div>
+    </div>
+    <button onClick={run} disabled={!tA||!tB||load} style={{width:"100%",background:C.accent,color:"#000",border:"none",borderRadius:10,padding:12,fontWeight:900,fontSize:15,cursor:tA&&tB?"pointer":"not-allowed",opacity:tA&&tB?1:.45,marginBottom:22}}>{load?"Simulating…":"⚡ Run Simulation"}</button>
+    {load&&<Loader label="Crunching numbers…"/>}
+    {res&&!load&&<div className="fade">
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginBottom:14}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}><Logo t={tA} size={32}/><div><div style={{color:C.text,fontWeight:800}}>{tA.school}</div><div style={{color:C.muted,fontSize:11}}>{yA}</div></div></div>
+          <div style={{display:"flex",alignItems:"center",gap:9}}><div style={{textAlign:"right"}}><div style={{color:C.text,fontWeight:800}}>{tB.school}</div><div style={{color:C.muted,fontSize:11}}>{yB}</div></div><Logo t={tB} size={32}/></div>
+        </div>
+        <div style={{height:26,background:C.border,borderRadius:13,overflow:"hidden",position:"relative",marginBottom:5}}>
+          <div style={{position:"absolute",left:0,top:0,height:"100%",width:`${Math.round(res.pA*100)}%`,background:`linear-gradient(90deg,${C.green},${C.blue})`,transition:"width .5s ease"}}/>
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:"#fff",textShadow:"0 1px 3px #0006"}}>{Math.round(res.pA*100)}% — {Math.round((1-res.pA)*100)}%</div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",color:C.dim,fontSize:10}}><span>Win probability</span><span>Win probability</span></div>
+      </div>
+      <div style={{display:"flex",gap:10,marginBottom:14,justifyContent:"center",alignItems:"center"}}>
+        {[[res.sA,tA,yA],[null],[res.sB,tB,yB]].map((item,i)=>!item[0]?<div key="d" style={{color:C.dim,fontWeight:900,fontSize:18}}>–</div>:
+          <div key={i} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 24px",textAlign:"center"}}><div style={{color:C.text,fontWeight:900,fontSize:34,fontFamily:"monospace"}}>{item[0]}</div><div style={{color:C.muted,fontSize:11,marginTop:3}}>{item[1].school} {item[2]}</div></div>)}
+      </div>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px 18px",marginBottom:10}}>
+        <div style={{color:C.muted,fontWeight:800,fontSize:10,letterSpacing:1,marginBottom:7,textAlign:"center",textTransform:"uppercase"}}>SP+ Ratings</div>
+        <SR lbl="Overall SP+" a={f1(res.spA.sp)} b={f1(res.spB.sp)}/><SR lbl="Offense" a={f1(res.spA.off)} b={f1(res.spB.off)}/><SR lbl="Defense (lower=better)" a={f1(res.spA.def)} b={f1(res.spB.def)} hb={false}/>
+      </div>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px 18px"}}>
+        <div style={{color:C.muted,fontWeight:800,fontSize:10,letterSpacing:1,marginBottom:7,textAlign:"center",textTransform:"uppercase"}}>Roster</div>
+        <SR lbl="Roster Size" a={res.rA.length} b={res.rB.length}/><SR lbl="Avg Stars" a={res.rA.length?f1(res.rA.reduce((s,p)=>s+(p.stars||0),0)/res.rA.length):"—"} b={res.rB.length?f1(res.rB.reduce((s,p)=>s+(p.stars||0),0)/res.rB.length):"—"}/><SR lbl="5★ Players" a={res.rA.filter(p=>p.stars===5).length} b={res.rB.filter(p=>p.stars===5).length}/>
+      </div>
+    </div>}
+    {(hist||hLoad)&&tA&&tB&&<div style={{marginTop:26}}>
+      <div style={{color:C.text,fontWeight:800,fontSize:15,marginBottom:12}}>📜 {tA.school} vs {tB.school} — History</div>
+      {hLoad?<Loader label="Loading history…"/>:!hist?.length?<div style={{color:C.muted,textAlign:"center",padding:22}}>No recorded matchups found.</div>:
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>{hist.map((g,i)=>{
+        const h=g.home_team===tA.school,aS=h?g.home_points:g.away_points,bS=h?g.away_points:g.home_points;
+        return <div key={i} style={{display:"flex",alignItems:"center",gap:13,background:C.card,borderRadius:10,padding:"10px 16px",border:`1px solid ${C.border}`}}>
+          <div style={{width:42,color:C.dim,fontSize:12,fontWeight:700,flexShrink:0}}>{g.season}</div>
+          <div style={{flex:1,color:C.muted,fontSize:12}}>{g.week?`Week ${g.week}`:""}</div>
+          <div style={{fontWeight:900,fontSize:14,fontFamily:"monospace",color:aS>bS?C.green:C.red}}>{aS} – {bS}</div>
+          <div style={{color:aS>bS?C.green:C.red,fontWeight:800,fontSize:12,width:88,textAlign:"right"}}>{aS>bS?tA.school:tB.school} W</div>
+        </div>;
+      })}</div>}
+    </div>}
+  </div>;
+}
+
+// ── TEAM VIEW ─────────────────────────────────────────────────────────────────
+function TeamView({team}){
+  const[tab,sT]=useState("depth");
+  const[roster,sRo]=useState(null);const[commits,sCo]=useState(null);
+  const[games,sGa]=useState(null);const[ratings,sRa]=useState(null);
+  const[load,sL]=useState(false);
+  useEffect(()=>{
+    if(!team)return;
+    sRo(null);sCo(null);sGa(null);sRa(null);sL(true);
+    Promise.all([
+      api("/roster",{team:team.school,year:DATA_YEAR}),
+      api("/recruiting/players",{team:team.school,year:DATA_YEAR+1}),
+      api("/games",{team:team.school,year:DATA_YEAR,seasonType:"regular"}),
+      api("/ratings/sp",{year:DATA_YEAR}),
+    ]).then(([r,c,g,sp])=>{
+      sRo(r||[]);sCo(c||[]);sGa(g||[]);
+      if(sp){const m={};sp.forEach(t=>{m[t.team]=(t.offense?.rating||0)+(t.defense?.rating||0);});sRa(m);}
+      sL(false);
+    });
+  },[team]);
+  return <div>
+    <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20}}><Logo t={team} size={52}/><div><h2 style={{color:C.text,margin:0,fontSize:24,fontWeight:900}}>{team.school}</h2><div style={{color:C.muted,fontSize:13}}>{team.conf} · {team.city}, {team.state}</div></div></div>
+    <Tabs tabs={[{id:"depth",icon:"📋",label:"Depth Chart"},{id:"schedule",icon:"📅",label:"Schedule"},{id:"recruiting",icon:"🎯",label:"Recruiting"}]} active={tab} set={sT}/>
+    {load?<Loader label={`Loading ${team.school}…`}/>:<>
+      {tab==="depth"&&<DepthChart roster={roster} commits={commits}/>}
+      {tab==="schedule"&&<Schedule games={games} team={team.school} ratings={ratings}/>}
+      {tab==="recruiting"&&<Recruiting commits={commits}/>}
+    </>}
+  </div>;
+}
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+  const[sel,sSel]=useState(null);
+  const[q,sQ]=useState("");const[conf,sC]=useState("All");
+  const[gTab,sGT]=useState("teams");
+  const confs=["All",...Array.from(new Set(TEAMS.map(t=>t.conf))).sort()];
+  const list=TEAMS.filter(t=>t.school.toLowerCase().includes(q.toLowerCase())&&(conf==="All"||t.conf===conf));
+  const NAV=[{id:"teams",icon:"🏈",label:"Teams"},{id:"portal",icon:"🔄",label:"Portal"},{id:"matchup",icon:"⚔️",label:"Matchup"}];
+  return <div style={{minHeight:"100vh",background:C.bg,color:C.text,display:"flex",flexDirection:"column"}}>
+    <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"0 18px",display:"flex",alignItems:"center",gap:12,height:52,flexShrink:0}}>
+      <span style={{fontSize:20}}>🏈</span>
+      <span style={{fontWeight:900,fontSize:16,color:C.text}}>GridIron</span><span style={{fontWeight:300,fontSize:16,color:C.accent}}>Scout</span>
+      <div style={{flex:1}}/>
+      <div style={{display:"flex",gap:3}}>{NAV.map(t=><button key={t.id} onClick={()=>sGT(t.id)} style={{background:gTab===t.id?C.accentA:"none",border:`1px solid ${gTab===t.id?C.accent+"55":"transparent"}`,borderRadius:7,padding:"5px 12px",cursor:"pointer",fontWeight:700,fontSize:13,color:gTab===t.id?C.accent:C.muted,display:"flex",alignItems:"center",gap:4}}><span>{t.icon}</span><span>{t.label}</span></button>)}</div>
+    </div>
+    <div style={{display:"flex",flex:1,overflow:"hidden"}}>
+      {gTab==="teams"&&<div style={{width:256,flexShrink:0,background:C.surface,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{padding:11,borderBottom:`1px solid ${C.border}`}}>
+          <input value={q} onChange={e=>sQ(e.target.value)} placeholder="Search teams…" style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"7px 11px",color:C.text,fontSize:13,outline:"none",marginBottom:7}}/>
+          <select value={conf} onChange={e=>sC(e.target.value)} style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"6px 11px",color:C.text,fontSize:12,outline:"none"}}>{confs.map(c=><option key={c} value={c}>{c}</option>)}</select>
+        </div>
+        <div style={{flex:1,overflowY:"auto"}}>{list.map(t=><div key={t.id} onClick={()=>sSel(t)} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 12px",cursor:"pointer",background:sel?.id===t.id?C.card:"transparent",borderLeft:`3px solid ${sel?.id===t.id?C.accent:"transparent"}`,borderBottom:`1px solid ${C.border}14`}}><Logo t={t} size={26}/><div><div style={{color:C.text,fontWeight:600,fontSize:13}}>{t.school}</div><div style={{color:C.dim,fontSize:10}}>{t.conf}</div></div></div>)}</div>
+        <div style={{padding:"7px 12px",borderTop:`1px solid ${C.border}`,color:C.dim,fontSize:11,display:"flex",justifyContent:"space-between"}}><span>{list.length} teams</span><a href="https://collegefootballdata.com" target="_blank" style={{color:C.accent}}>CFBD</a></div>
+      </div>}
+      <div style={{flex:1,overflowY:"auto",padding:24}}>
+        {gTab==="teams"&&(!sel?<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"70%",gap:12}}>
+          <div style={{fontSize:54}}>🏈</div>
+          <h2 style={{color:C.text,margin:0,fontWeight:900,fontSize:26}}>GridIronScout</h2>
+          <p style={{color:C.muted,textAlign:"center",maxWidth:380,lineHeight:1.7,margin:0,fontSize:14}}>Select any team from the sidebar to view live depth charts, schedules, and recruiting data.</p>
+          <div style={{display:"flex",gap:9,marginTop:8,flexWrap:"wrap",justifyContent:"center"}}>{[["📋","Depth Charts"],["🎯","Recruiting"],["🔄","Portal"],["⚔️","Matchups"]].map(([icon,l])=><div key={l} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:9,padding:"11px 16px",textAlign:"center",minWidth:86}}><div style={{fontSize:20,marginBottom:3}}>{icon}</div><div style={{color:C.muted,fontSize:12,fontWeight:600}}>{l}</div></div>)}</div>
+        </div>:<TeamView team={sel}/>)}
+        {gTab==="portal"&&<Portal/>}
+        {gTab==="matchup"&&<Matchup/>}
+      </div>
+    </div>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
